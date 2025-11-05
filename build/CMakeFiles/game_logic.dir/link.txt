@@ -1,0 +1,2 @@
+C:\msys64\mingw64\bin\ar.exe qc libgame_logic.a CMakeFiles/game_logic.dir/src/GameLogic.cpp.obj
+C:\msys64\mingw64\bin\ranlib.exe libgame_logic.a

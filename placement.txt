@@ -1,0 +1,5 @@
+AircraftCarrier D6 V
+Battleship C6 H
+Cruiser C2 H
+Submarine H2 V
+Destroyer A6 H

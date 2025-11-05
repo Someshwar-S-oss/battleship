@@ -1,0 +1,26 @@
+[
+{
+  "directory": "C:/Users/eshwa/Repos/battleship/build",
+  "command": "C:\\msys64\\mingw64\\bin\\c++.exe    -static-libgcc -static-libstdc++ -std=c++17 -Wall -Wextra -Wpedantic -o CMakeFiles\\fleet_commander.dir\\src\\main.cpp.obj -c C:\\Users\\eshwa\\Repos\\battleship\\src\\main.cpp",
+  "file": "C:/Users/eshwa/Repos/battleship/src/main.cpp",
+  "output": "CMakeFiles/fleet_commander.dir/src/main.cpp.obj"
+},
+{
+  "directory": "C:/Users/eshwa/Repos/battleship/build",
+  "command": "C:\\msys64\\mingw64\\bin\\c++.exe    -static-libgcc -static-libstdc++ -std=c++17 -Wall -Wextra -Wpedantic -o CMakeFiles\\game_logic.dir\\src\\GameLogic.cpp.obj -c C:\\Users\\eshwa\\Repos\\battleship\\src\\GameLogic.cpp",
+  "file": "C:/Users/eshwa/Repos/battleship/src/GameLogic.cpp",
+  "output": "CMakeFiles/game_logic.dir/src/GameLogic.cpp.obj"
+},
+{
+  "directory": "C:/Users/eshwa/Repos/battleship/build",
+  "command": "C:\\msys64\\mingw64\\bin\\c++.exe    -static-libgcc -static-libstdc++ -std=c++17 -Wall -Wextra -Wpedantic -o CMakeFiles\\fleet_commander_gui.dir\\src\\main_gui.cpp.obj -c C:\\Users\\eshwa\\Repos\\battleship\\src\\main_gui.cpp",
+  "file": "C:/Users/eshwa/Repos/battleship/src/main_gui.cpp",
+  "output": "CMakeFiles/fleet_commander_gui.dir/src/main_gui.cpp.obj"
+},
+{
+  "directory": "C:/Users/eshwa/Repos/battleship/build",
+  "command": "C:\\msys64\\mingw64\\bin\\c++.exe    -static-libgcc -static-libstdc++ -std=c++17 -Wall -Wextra -Wpedantic -o CMakeFiles\\fleet_commander_gui.dir\\src\\GameGUI.cpp.obj -c C:\\Users\\eshwa\\Repos\\battleship\\src\\GameGUI.cpp",
+  "file": "C:/Users/eshwa/Repos/battleship/src/GameGUI.cpp",
+  "output": "CMakeFiles/fleet_commander_gui.dir/src/GameGUI.cpp.obj"
+}
+]
