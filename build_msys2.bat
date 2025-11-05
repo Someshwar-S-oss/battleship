@@ -48,10 +48,15 @@ if errorlevel 1 (
 
 echo.
 echo Copying SFML DLLs and dependencies...
+REM SFML libraries
 copy /Y "%MSYS2_ROOT%\mingw64\bin\libsfml-*.dll" . >nul 2>&1
+
+REM Standard C++ runtime
 copy /Y "%MSYS2_ROOT%\mingw64\bin\libgcc_s_seh-1.dll" . >nul 2>&1
 copy /Y "%MSYS2_ROOT%\mingw64\bin\libstdc++-6.dll" . >nul 2>&1
 copy /Y "%MSYS2_ROOT%\mingw64\bin\libwinpthread-1.dll" . >nul 2>&1
+
+REM Graphics dependencies (FreeType, PNG, etc.)
 copy /Y "%MSYS2_ROOT%\mingw64\bin\libfreetype-6.dll" . >nul 2>&1
 copy /Y "%MSYS2_ROOT%\mingw64\bin\libbz2-1.dll" . >nul 2>&1
 copy /Y "%MSYS2_ROOT%\mingw64\bin\libpng16-16.dll" . >nul 2>&1
@@ -64,6 +69,15 @@ copy /Y "%MSYS2_ROOT%\mingw64\bin\libgraphite2.dll" . >nul 2>&1
 copy /Y "%MSYS2_ROOT%\mingw64\bin\libintl-8.dll" . >nul 2>&1
 copy /Y "%MSYS2_ROOT%\mingw64\bin\libiconv-2.dll" . >nul 2>&1
 copy /Y "%MSYS2_ROOT%\mingw64\bin\libpcre2-8-0.dll" . >nul 2>&1
+
+REM Audio dependencies (OGG, Vorbis, FLAC, OpenAL)
+copy /Y "%MSYS2_ROOT%\mingw64\bin\libogg-0.dll" . >nul 2>&1
+copy /Y "%MSYS2_ROOT%\mingw64\bin\libvorbis-0.dll" . >nul 2>&1
+copy /Y "%MSYS2_ROOT%\mingw64\bin\libvorbisenc-2.dll" . >nul 2>&1
+copy /Y "%MSYS2_ROOT%\mingw64\bin\libvorbisfile-3.dll" . >nul 2>&1
+copy /Y "%MSYS2_ROOT%\mingw64\bin\libFLAC.dll" . >nul 2>&1
+copy /Y "%MSYS2_ROOT%\mingw64\bin\libFLAC++.dll" . >nul 2>&1
+copy /Y "%MSYS2_ROOT%\mingw64\bin\libopenal-1.dll" . >nul 2>&1
 
 echo.
 echo ========================================

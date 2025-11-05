@@ -266,6 +266,26 @@ CMakeFiles/fleet_commander_gui.dir/src/main_gui.cpp.obj: \
  C:/msys64/mingw64/include/SFML/Graphics/Sprite.hpp \
  C:/msys64/mingw64/include/SFML/Graphics/Text.hpp \
  C:/msys64/mingw64/include/SFML/Graphics/VertexBuffer.hpp \
+ C:/msys64/mingw64/include/SFML/Audio.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/InputSoundFile.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/Export.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/Listener.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/Music.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/SoundStream.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/SoundSource.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/AlResource.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/OutputSoundFile.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/Sound.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/SoundBuffer.hpp \
+ C:/msys64/mingw64/include/c++/15.2.0/set \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/stl_set.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/stl_multiset.h \
+ C:/msys64/mingw64/include/SFML/Audio/SoundBufferRecorder.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/SoundRecorder.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/SoundFileFactory.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/SoundFileFactory.inl \
+ C:/msys64/mingw64/include/SFML/Audio/SoundFileReader.hpp \
+ C:/msys64/mingw64/include/SFML/Audio/SoundFileWriter.hpp \
  C:/msys64/mingw64/include/c++/15.2.0/functional \
  C:/msys64/mingw64/include/c++/15.2.0/bits/std_function.h \
  C:/msys64/mingw64/include/c++/15.2.0/unordered_map \
@@ -273,6 +293,14 @@ CMakeFiles/fleet_commander_gui.dir/src/main_gui.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/bits/hashtable.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/hashtable_policy.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/enable_special_members.h \
- C:/msys64/mingw64/include/c++/15.2.0/iostream \
+ C:/msys64/mingw64/include/c++/15.2.0/fstream \
  C:/msys64/mingw64/include/c++/15.2.0/istream \
- C:/msys64/mingw64/include/c++/15.2.0/bits/istream.tcc
+ C:/msys64/mingw64/include/c++/15.2.0/bits/istream.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/basic_file.h \
+ C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++io.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/fstream.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/iomanip \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/quoted_string.h \
+ C:/msys64/mingw64/include/c++/15.2.0/sstream \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/sstream.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/iostream

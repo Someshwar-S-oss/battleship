@@ -112,6 +112,7 @@ fleet_commander_gui.exe: CMakeFiles/fleet_commander_gui.dir/src/GameGUI.cpp.obj
 fleet_commander_gui.exe: CMakeFiles/fleet_commander_gui.dir/build.make
 fleet_commander_gui.exe: libgame_logic.a
 fleet_commander_gui.exe: C:/msys64/mingw64/lib/libsfml-graphics.dll.a
+fleet_commander_gui.exe: C:/msys64/mingw64/lib/libsfml-audio.dll.a
 fleet_commander_gui.exe: C:/msys64/mingw64/lib/libsfml-window.dll.a
 fleet_commander_gui.exe: C:/msys64/mingw64/lib/libsfml-system.dll.a
 fleet_commander_gui.exe: CMakeFiles/fleet_commander_gui.dir/linkLibs.rsp

@@ -522,7 +522,15 @@ GameGUI::GameGUI()
     initFont();
     initMenuBackground();
     initShipTextures();
+    initAudio();
+    initWaterBackground();
     initGameObjects();
+    loadStats();
+    
+    // Initialize fade overlay
+    fadeOverlay.setSize(sf::Vector2f(1920, 1080));
+    fadeOverlay.setFillColor(sf::Color(0, 0, 0, 0));
+    
     changeState(GameState::Menu);
 }
 
@@ -658,6 +666,109 @@ void GameGUI::initShipTextures()
     }
 }
 
+void GameGUI::initAudio()
+{
+    // Load background music
+    if (backgroundMusic.openFromFile("assets/audio/background.ogg") || 
+        backgroundMusic.openFromFile("assets/audio/background.mp3") ||
+        backgroundMusic.openFromFile("assets/audio/background.wav"))
+    {
+        backgroundMusic.setLoop(true);
+        backgroundMusic.setVolume(musicVolume);
+        backgroundMusic.play();
+        std::cout << "Background music loaded and playing." << std::endl;
+    }
+    else
+    {
+        std::cout << "No background music found (optional)." << std::endl;
+    }
+    
+    // Load sound effects
+    if (hitSoundBuffer.loadFromFile("assets/audio/hit.wav") ||
+        hitSoundBuffer.loadFromFile("assets/audio/hit.ogg"))
+    {
+        hitSound.setBuffer(hitSoundBuffer);
+        hitSound.setVolume(sfxVolume);
+        std::cout << "Hit sound effect loaded." << std::endl;
+    }
+    
+    if (missSoundBuffer.loadFromFile("assets/audio/miss.wav") ||
+        missSoundBuffer.loadFromFile("assets/audio/miss.ogg"))
+    {
+        missSound.setBuffer(missSoundBuffer);
+        missSound.setVolume(sfxVolume);
+        std::cout << "Miss sound effect loaded." << std::endl;
+    }
+    
+    if (sinkSoundBuffer.loadFromFile("assets/audio/sink.wav") ||
+        sinkSoundBuffer.loadFromFile("assets/audio/sink.ogg"))
+    {
+        sinkSound.setBuffer(sinkSoundBuffer);
+        sinkSound.setVolume(sfxVolume);
+        std::cout << "Sink sound effect loaded." << std::endl;
+    }
+}
+
+void GameGUI::initWaterBackground()
+{
+    // Try to load animated water texture
+    if (waterTexture.loadFromFile("assets/textures/water.png") ||
+        waterTexture.loadFromFile("assets/textures/water.jpg"))
+    {
+        hasWaterTexture = true;
+        waterTexture.setRepeated(true);
+        waterSprite.setTexture(waterTexture);
+        waterSprite.setTextureRect(sf::IntRect(0, 0, 1920, 1080));
+        waterSprite.setColor(sf::Color(255, 255, 255, 100)); // Semi-transparent
+        std::cout << "Water background texture loaded." << std::endl;
+    }
+    else
+    {
+        hasWaterTexture = false;
+    }
+}
+
+void GameGUI::loadStats()
+{
+    std::ifstream file("stats.txt");
+    if (file.is_open())
+    {
+        file >> stats.gamesPlayed >> stats.gamesWon >> stats.gamesLost 
+             >> stats.totalShotsFired >> stats.totalHits;
+        file.close();
+        std::cout << "Loaded statistics: " << stats.gamesPlayed << " games played." << std::endl;
+    }
+    else
+    {
+        std::cout << "No previous statistics found. Starting fresh!" << std::endl;
+    }
+}
+
+void GameGUI::saveStats()
+{
+    std::ofstream file("stats.txt");
+    if (file.is_open())
+    {
+        file << stats.gamesPlayed << " " << stats.gamesWon << " " << stats.gamesLost << " "
+             << stats.totalShotsFired << " " << stats.totalHits;
+        file.close();
+    }
+}
+
+void GameGUI::updateStatsOnGameEnd(bool won)
+{
+    stats.gamesPlayed++;
+    if (won)
+        stats.gamesWon++;
+    else
+        stats.gamesLost++;
+    
+    stats.totalShotsFired += currentGameShots;
+    stats.totalHits += currentGameHits;
+    
+    saveStats();
+}
+
 void GameGUI::initGameObjects()
 {
     // Initialize boards
@@ -740,6 +851,9 @@ void GameGUI::processEvents()
         case GameState::Menu:
             handleMenuEvents(event);
             break;
+        case GameState::Settings:
+            handleSettingsEvents(event);
+            break;
         case GameState::PlacingShips:
             handlePlacementEvents(event);
             break;
@@ -759,14 +873,92 @@ void GameGUI::handleMenuEvents(sf::Event &event)
     if (event.type == sf::Event::MouseButtonPressed)
     {
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+        for (size_t i = 0; i < buttons.size(); ++i)
+        {
+            if (buttons[i]->isClicked(mousePos, event.mouseButton))
+            {
+                if (i == 0) // Start New Game
+                {
+                    currentGameShots = 0;
+                    currentGameHits = 0;
+                    changeState(GameState::PlacingShips);
+                }
+                else if (i == 1) // Settings
+                {
+                    changeState(GameState::Settings);
+                }
+                else if (i >= 2 && i <= 4) // Difficulty
+                {
+                    difficulty = static_cast<Difficulty>(i - 2);
+                }
+                break;
+            }
+        }
+    }
+}
+
+void GameGUI::handleSettingsEvents(sf::Event &event)
+{
+    static bool draggingMusic = false;
+    static bool draggingSFX = false;
+    
+    if (event.type == sf::Event::MouseButtonPressed)
+    {
+        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+        
+        // Check if clicking on sliders
+        sf::FloatRect musicSlider(660, 390, 600, 20);
+        sf::FloatRect sfxSlider(660, 540, 600, 20);
+        
+        if (musicSlider.contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)))
+        {
+            draggingMusic = true;
+            float percent = (mousePos.x - 660) / 600.0f;
+            musicVolume = std::max(0.0f, std::min(100.0f, percent * 100.0f));
+            backgroundMusic.setVolume(musicVolume);
+        }
+        else if (sfxSlider.contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)))
+        {
+            draggingSFX = true;
+            float percent = (mousePos.x - 660) / 600.0f;
+            sfxVolume = std::max(0.0f, std::min(100.0f, percent * 100.0f));
+            hitSound.setVolume(sfxVolume);
+            missSound.setVolume(sfxVolume);
+            sinkSound.setVolume(sfxVolume);
+        }
+        
+        // Check back button
         for (auto &button : buttons)
         {
             if (button->isClicked(mousePos, event.mouseButton))
             {
-                // Start new game
-                changeState(GameState::PlacingShips);
+                changeState(GameState::Menu);
                 break;
             }
+        }
+    }
+    else if (event.type == sf::Event::MouseButtonReleased)
+    {
+        draggingMusic = false;
+        draggingSFX = false;
+    }
+    else if (event.type == sf::Event::MouseMoved)
+    {
+        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+        
+        if (draggingMusic)
+        {
+            float percent = (mousePos.x - 660) / 600.0f;
+            musicVolume = std::max(0.0f, std::min(100.0f, percent * 100.0f));
+            backgroundMusic.setVolume(musicVolume);
+        }
+        else if (draggingSFX)
+        {
+            float percent = (mousePos.x - 660) / 600.0f;
+            sfxVolume = std::max(0.0f, std::min(100.0f, percent * 100.0f));
+            hitSound.setVolume(sfxVolume);
+            missSound.setVolume(sfxVolume);
+            sinkSound.setVolume(sfxVolume);
         }
     }
 }
@@ -843,12 +1035,20 @@ void GameGUI::handleGameOverEvents(sf::Event &event)
     if (event.type == sf::Event::MouseButtonPressed)
     {
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-        for (auto &button : buttons)
+        for (size_t i = 0; i < buttons.size(); ++i)
         {
-            if (button->isClicked(mousePos, event.mouseButton))
+            if (buttons[i]->isClicked(mousePos, event.mouseButton))
             {
-                // Restart game
-                changeState(GameState::Menu);
+                if (i == 0) // Play Again
+                {
+                    currentGameShots = 0;
+                    currentGameHits = 0;
+                    changeState(GameState::PlacingShips);
+                }
+                else if (i == 1) // Main Menu
+                {
+                    changeState(GameState::Menu);
+                }
                 break;
             }
         }
@@ -858,6 +1058,19 @@ void GameGUI::handleGameOverEvents(sf::Event &event)
 void GameGUI::update(float deltaTime)
 {
     updateParticles(deltaTime);
+    
+    // Animate water background
+    if (hasWaterTexture)
+    {
+        waterScrollOffset += 20.0f * deltaTime; // Scroll speed
+    }
+    
+    // Fade effects
+    if (fadeAlpha > 0)
+    {
+        fadeAlpha -= 100.0f * deltaTime;
+        if (fadeAlpha < 0) fadeAlpha = 0;
+    }
 
     if (state == GameState::ComputerTurn)
     {
@@ -876,10 +1089,16 @@ void GameGUI::updateParticles(float deltaTime)
         }
         else
         {
+            // Apply gravity to confetti
+            if (it->type == ParticleType::Confetti)
+            {
+                it->velocity.y += 300.0f * deltaTime; // Gravity
+            }
+            
             it->shape.move(it->velocity * deltaTime);
             
             // Fade out
-            sf::Color color = it->shape.getFillColor();
+            sf::Color color = it->startColor;
             color.a = static_cast<sf::Uint8>(255 * (it->lifetime / it->maxLifetime));
             it->shape.setFillColor(color);
             
@@ -908,10 +1127,19 @@ void GameGUI::render()
 {
     window.clear(Colors::Background);
 
+    // Draw animated water background for battle scenes
+    if (state == GameState::PlayerTurn || state == GameState::ComputerTurn || state == GameState::PlacingShips)
+    {
+        renderWaterBackground();
+    }
+
     switch (state)
     {
     case GameState::Menu:
         renderMenu();
+        break;
+    case GameState::Settings:
+        renderSettings();
         break;
     case GameState::PlacingShips:
         renderPlacement();
@@ -930,8 +1158,26 @@ void GameGUI::render()
     {
         window.draw(particle.shape);
     }
+    
+    // Draw fade overlay (for transitions)
+    if (fadeAlpha > 0)
+    {
+        fadeOverlay.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(fadeAlpha)));
+        window.draw(fadeOverlay);
+    }
 
     window.display();
+}
+
+void GameGUI::renderWaterBackground()
+{
+    if (hasWaterTexture)
+    {
+        // Scroll the water texture
+        int offsetX = static_cast<int>(waterScrollOffset) % waterTexture.getSize().x;
+        waterSprite.setTextureRect(sf::IntRect(offsetX, 0, 1920, 1080));
+        window.draw(waterSprite);
+    }
 }
 
 void GameGUI::renderMenu()
@@ -945,18 +1191,94 @@ void GameGUI::renderMenu()
     drawTitle("FLEET COMMANDER", 150);
     drawCenteredText("Pixel Art Edition", 280, 28);
     
-    // Draw start button (centered for 1920x1080)
+    // Draw buttons
     if (buttons.empty())
     {
-        buttons.push_back(std::make_unique<Button>(sf::Vector2f(760, 450), sf::Vector2f(400, 80), "Start New Game", font));
+        buttons.push_back(std::make_unique<Button>(sf::Vector2f(760, 400), sf::Vector2f(400, 80), "Start New Game", font));
+        buttons.push_back(std::make_unique<Button>(sf::Vector2f(760, 500), sf::Vector2f(400, 80), "Settings", font));
+        
+        // Difficulty buttons
+        buttons.push_back(std::make_unique<Button>(sf::Vector2f(660, 620), sf::Vector2f(200, 60), "Easy", font));
+        buttons.push_back(std::make_unique<Button>(sf::Vector2f(870, 620), sf::Vector2f(200, 60), "Medium", font));
+        buttons.push_back(std::make_unique<Button>(sf::Vector2f(1080, 620), sf::Vector2f(200, 60), "Hard", font));
     }
 
+    for (size_t i = 0; i < buttons.size(); ++i)
+    {
+        // Highlight selected difficulty
+        if (i >= 2 && i <= 4)
+        {
+            int diffIdx = static_cast<int>(difficulty);
+            if (i == diffIdx + 2)
+            {
+                // Draw selection indicator
+                sf::RectangleShape selector(sf::Vector2f(200, 60));
+                selector.setPosition(buttons[i]->isHovered(sf::Mouse::getPosition(window)) ? 
+                    sf::Vector2f(660 + (i-2)*210 - 5, 615) : sf::Vector2f(660 + (i-2)*210, 620));
+                selector.setFillColor(sf::Color::Transparent);
+                selector.setOutlineColor(Colors::Highlight);
+                selector.setOutlineThickness(4.0f);
+                window.draw(selector);
+            }
+        }
+        buttons[i]->draw(window);
+    }
+
+    drawCenteredText("Select Difficulty:", 580, 22);
+    drawCenteredText("Sink all enemy ships to win!", 780, 24);
+    
+    // Display stats
+    std::stringstream ss;
+    ss << "Stats: " << stats.gamesPlayed << " Games | " 
+       << stats.gamesWon << " Wins | "
+       << std::fixed << std::setprecision(1) << stats.getAccuracy() << "% Accuracy";
+    drawCenteredText(ss.str(), 950, 20);
+}
+
+void GameGUI::renderSettings()
+{
+    drawTitle("SETTINGS", 150);
+    
+    // Music Volume
+    drawCenteredText("Music Volume: " + std::to_string(static_cast<int>(musicVolume)) + "%", 350, 24);
+    sf::RectangleShape musicSlider(sf::Vector2f(600, 20));
+    musicSlider.setPosition(660, 390);
+    musicSlider.setFillColor(Colors::OceanDark);
+    musicSlider.setOutlineColor(Colors::Text);
+    musicSlider.setOutlineThickness(2);
+    window.draw(musicSlider);
+    
+    sf::RectangleShape musicFill(sf::Vector2f(600 * (musicVolume / 100.0f), 20));
+    musicFill.setPosition(660, 390);
+    musicFill.setFillColor(Colors::Highlight);
+    window.draw(musicFill);
+    
+    // SFX Volume
+    drawCenteredText("SFX Volume: " + std::to_string(static_cast<int>(sfxVolume)) + "%", 500, 24);
+    sf::RectangleShape sfxSlider(sf::Vector2f(600, 20));
+    sfxSlider.setPosition(660, 540);
+    sfxSlider.setFillColor(Colors::OceanDark);
+    sfxSlider.setOutlineColor(Colors::Text);
+    sfxSlider.setOutlineThickness(2);
+    window.draw(sfxSlider);
+    
+    sf::RectangleShape sfxFill(sf::Vector2f(600 * (sfxVolume / 100.0f), 20));
+    sfxFill.setPosition(660, 540);
+    sfxFill.setFillColor(Colors::Highlight);
+    window.draw(sfxFill);
+    
+    // Draw back button
+    if (buttons.empty())
+    {
+        buttons.push_back(std::make_unique<Button>(sf::Vector2f(760, 700), sf::Vector2f(400, 80), "Back to Menu", font));
+    }
+    
     for (auto &button : buttons)
     {
         button->draw(window);
     }
-
-    drawCenteredText("Sink all enemy ships to win!", 700, 24);
+    
+    drawCenteredText("Click and drag sliders to adjust volume", 650, 20);
 }
 
 void GameGUI::renderPlacement()
@@ -1046,6 +1368,57 @@ void GameGUI::renderBattle()
     turnIndicator.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
     turnIndicator.setPosition(960, 120);
     window.draw(turnIndicator);
+    
+    // Display accuracy
+    float accuracy = currentGameShots > 0 ? (100.0f * currentGameHits / currentGameShots) : 0.0f;
+    std::stringstream ss;
+    ss << "Shots: " << currentGameShots << " | Hits: " << currentGameHits 
+       << " | Accuracy: " << std::fixed << std::setprecision(1) << accuracy << "%";
+    drawCenteredText(ss.str(), 850, 20);
+    
+    // Show ship tooltip on hover (player board only for now)
+    if (playerBoard)
+    {
+        Coordinate hoverCoord;
+        if (playerBoardView->getCellFromMouse(sf::Mouse::getPosition(window), hoverCoord))
+        {
+            const auto& ships = playerBoard->getShips();
+            for (const Ship* ship : ships)
+            {
+                if (ship && ship->isPlaced())
+                {
+                    const auto& positions = ship->getPositions();
+                    for (const auto& pos : positions)
+                    {
+                        if (pos.first == hoverCoord.first && pos.second == hoverCoord.second)
+                        {
+                            // Draw tooltip
+                            sf::Vector2f tooltipPos = playerBoardView->getCellCenter(hoverCoord);
+                            tooltipPos.y -= 40;
+                            
+                            sf::Text tooltip(ship->getType(), font, 18);
+                            tooltip.setFillColor(Colors::Text);
+                            tooltip.setStyle(sf::Text::Bold);
+                            sf::FloatRect tBounds = tooltip.getLocalBounds();
+                            tooltip.setOrigin(tBounds.left + tBounds.width / 2.0f, tBounds.top + tBounds.height / 2.0f);
+                            tooltip.setPosition(tooltipPos);
+                            
+                            // Background for tooltip
+                            sf::RectangleShape tooltipBg(sf::Vector2f(tBounds.width + 20, tBounds.height + 10));
+                            tooltipBg.setPosition(tooltipPos.x - tBounds.width/2 - 10, tooltipPos.y - tBounds.height/2 - 5);
+                            tooltipBg.setFillColor(sf::Color(0, 0, 0, 200));
+                            tooltipBg.setOutlineColor(Colors::Highlight);
+                            tooltipBg.setOutlineThickness(2);
+                            
+                            window.draw(tooltipBg);
+                            window.draw(tooltip);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     messageBox->draw(window);
 }
@@ -1057,17 +1430,41 @@ void GameGUI::renderGameOver()
     std::string resultText = playerWon ? "VICTORY!" : "DEFEAT";
     sf::Color resultColor = playerWon ? sf::Color::Green : Colors::Hit;
 
-    sf::Text result(resultText, font, 48);
+    sf::Text result(resultText, font, 64);
     result.setFillColor(resultColor);
+    result.setStyle(sf::Text::Bold);
     sf::FloatRect bounds = result.getLocalBounds();
     result.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
-    result.setPosition(600, 300);
+    result.setPosition(960, 300);
     window.draw(result);
+    
+    // Game stats
+    float gameAccuracy = currentGameShots > 0 ? (100.0f * currentGameHits / currentGameShots) : 0.0f;
+    
+    std::stringstream ss;
+    ss << "This Game: " << currentGameShots << " shots, " << currentGameHits << " hits"
+       << " (" << std::fixed << std::setprecision(1) << gameAccuracy << "%)";
+    drawCenteredText(ss.str(), 400, 24);
+    
+    ss.str("");
+    ss << "Overall Stats: " << stats.gamesPlayed << " games, "
+       << stats.gamesWon << " wins, " << stats.gamesLost << " losses";
+    drawCenteredText(ss.str(), 450, 24);
+    
+    ss.str("");
+    ss << "Career Accuracy: " << std::fixed << std::setprecision(1) << stats.getAccuracy() << "%";
+    drawCenteredText(ss.str(), 500, 24);
+    
+    // Show difficulty
+    std::string diffStr = (difficulty == Difficulty::Easy) ? "Easy" :
+                         (difficulty == Difficulty::Medium) ? "Medium" : "Hard";
+    drawCenteredText("Difficulty: " + diffStr, 550, 24);
 
-    // Draw restart button
+    // Draw buttons
     if (buttons.empty())
     {
-        buttons.push_back(std::make_unique<Button>(sf::Vector2f(450, 400), sf::Vector2f(300, 60), "Play Again", font));
+        buttons.push_back(std::make_unique<Button>(sf::Vector2f(660, 650), sf::Vector2f(300, 70), "Play Again", font));
+        buttons.push_back(std::make_unique<Button>(sf::Vector2f(980, 650), sf::Vector2f(300, 70), "Main Menu", font));
     }
 
     for (auto &button : buttons)
@@ -1324,14 +1721,22 @@ void GameGUI::playerAttack(const Coordinate &target)
     case Board::AttackResult::Miss:
         createMissEffect(computerBoardView->getCellCenter(target));
         messageBox->addMessage("Miss at " + coordinateToString(target));
+        missSound.play();
+        currentGameShots++;
         break;
     case Board::AttackResult::Hit:
         createHitEffect(computerBoardView->getCellCenter(target));
         messageBox->addMessage("Hit at " + coordinateToString(target) + "!");
+        hitSound.play();
+        currentGameShots++;
+        currentGameHits++;
         break;
     case Board::AttackResult::Sunk:
         createSinkEffect(computerBoardView->getCellCenter(target));
         messageBox->addMessage("Sunk the " + shipName + "!");
+        sinkSound.play();
+        currentGameShots++;
+        currentGameHits++;
         break;
     case Board::AttackResult::AlreadyTried:
         messageBox->addMessage("Already tried " + coordinateToString(target));
@@ -1349,40 +1754,125 @@ void GameGUI::playerAttack(const Coordinate &target)
 
 void GameGUI::executeComputerAttack()
 {
-    while (!computerShots.empty())
+    Coordinate target;
+    bool validTarget = false;
+    
+    // Smart AI for Medium and Hard difficulty
+    if (difficulty != Difficulty::Easy && !hitQueue.empty())
     {
-        Coordinate target = computerShots.back();
-        computerShots.pop_back();
-
-        std::string shipName;
-        Board::AttackResult result = playerBoard->attack(target, shipName);
-
-        if (result == Board::AttackResult::Invalid || result == Board::AttackResult::AlreadyTried)
+        target = hitQueue.back();
+        hitQueue.pop_back();
+        validTarget = true;
+    }
+    else if (difficulty == Difficulty::Hard && huntingMode && lastHit.first != -1)
+    {
+        // Hard mode: Try adjacent cells to last hit
+        std::vector<Coordinate> adjacent = {
+            {lastHit.first - 1, lastHit.second},
+            {lastHit.first + 1, lastHit.second},
+            {lastHit.first, lastHit.second - 1},
+            {lastHit.first, lastHit.second + 1}
+        };
+        
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::shuffle(adjacent.begin(), adjacent.end(), gen);
+        
+        for (const auto& coord : adjacent)
         {
-            continue;
+            if (coord.first >= 0 && coord.first < 10 && coord.second >= 0 && coord.second < 10)
+            {
+                if (!playerBoard->isAttacked(coord))
+                {
+                    target = coord;
+                    validTarget = true;
+                    break;
+                }
+            }
         }
-
-        switch (result)
+    }
+    
+    // Random shot if no smart target
+    if (!validTarget)
+    {
+        while (!computerShots.empty())
         {
-        case Board::AttackResult::Miss:
-            createMissEffect(playerBoardView->getCellCenter(target));
-            messageBox->addMessage("Enemy misses at " + coordinateToString(target));
-            break;
-        case Board::AttackResult::Hit:
-            createHitEffect(playerBoardView->getCellCenter(target));
-            messageBox->addMessage("Enemy hits at " + coordinateToString(target) + "!");
-            break;
-        case Board::AttackResult::Sunk:
-            createSinkEffect(playerBoardView->getCellCenter(target));
-            messageBox->addMessage("Enemy sinks your " + shipName + "!");
-            break;
-        default:
-            break;
+            target = computerShots.back();
+            computerShots.pop_back();
+            
+            if (!playerBoard->isAttacked(target))
+            {
+                validTarget = true;
+                break;
+            }
         }
+    }
+    
+    if (!validTarget)
+    {
+        refillComputerShots();
+        return;
+    }
 
-        checkGameOver();
+    std::string shipName;
+    Board::AttackResult result = playerBoard->attack(target, shipName);
+
+    if (result == Board::AttackResult::Invalid || result == Board::AttackResult::AlreadyTried)
+    {
+        return;
+    }
+
+    switch (result)
+    {
+    case Board::AttackResult::Miss:
+        createMissEffect(playerBoardView->getCellCenter(target));
+        messageBox->addMessage("Enemy misses at " + coordinateToString(target));
+        missSound.play();
+        huntingMode = false;
+        break;
+    case Board::AttackResult::Hit:
+        createHitEffect(playerBoardView->getCellCenter(target));
+        messageBox->addMessage("Enemy hits at " + coordinateToString(target) + "!");
+        hitSound.play();
+        
+        // Add adjacent cells to hit queue for smart targeting
+        if (difficulty != Difficulty::Easy)
+        {
+            lastHit = target;
+            huntingMode = true;
+            
+            std::vector<Coordinate> adjacent = {
+                {target.first - 1, target.second},
+                {target.first + 1, target.second},
+                {target.first, target.second - 1},
+                {target.first, target.second + 1}
+            };
+            
+            for (const auto& coord : adjacent)
+            {
+                if (coord.first >= 0 && coord.first < 10 && coord.second >= 0 && coord.second < 10)
+                {
+                    if (!playerBoard->isAttacked(coord))
+                    {
+                        hitQueue.push_back(coord);
+                    }
+                }
+            }
+        }
+        break;
+    case Board::AttackResult::Sunk:
+        createSinkEffect(playerBoardView->getCellCenter(target));
+        messageBox->addMessage("Enemy sinks your " + shipName + "!");
+        sinkSound.play();
+        hitQueue.clear();
+        huntingMode = false;
+        lastHit = {-1, -1};
+        break;
+    default:
         break;
     }
+
+    checkGameOver();
     
     if (computerShots.empty())
     {
@@ -1395,58 +1885,122 @@ void GameGUI::checkGameOver()
     if (playerBoard->allShipsSunk())
     {
         playerWon = false;
+        updateStatsOnGameEnd(false);
         changeState(GameState::GameOver);
     }
     else if (computerBoard->allShipsSunk())
     {
         playerWon = true;
+        updateStatsOnGameEnd(true);
+        
+        // Create confetti for victory
+        for (int i = 0; i < 100; ++i)
+        {
+            createConfetti(sf::Vector2f(960, 540));
+        }
+        
         changeState(GameState::GameOver);
     }
 }
 
 void GameGUI::createHitEffect(const sf::Vector2f &position)
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> angleDist(0, 6.28318f);
-    std::uniform_real_distribution<float> speedDist(50, 150);
-
-    for (int i = 0; i < 20; ++i)
-    {
-        Particle p;
-        p.shape.setRadius(3);
-        p.shape.setFillColor(Colors::Hit);
-        p.shape.setPosition(position);
-
-        float angle = angleDist(gen);
-        float speed = speedDist(gen);
-        p.velocity = sf::Vector2f(std::cos(angle) * speed, std::sin(angle) * speed);
-        p.lifetime = 1.0f;
-        p.maxLifetime = 1.0f;
-
-        particles.push_back(p);
-    }
+    createParticle(position, ParticleType::Explosion);
 }
 
 void GameGUI::createMissEffect(const sf::Vector2f &position)
 {
+    createParticle(position, ParticleType::WaterSplash);
+}
+
+void GameGUI::createConfetti(const sf::Vector2f &position)
+{
+    createParticle(position, ParticleType::Confetti);
+}
+
+void GameGUI::createParticle(const sf::Vector2f &position, ParticleType type)
+{
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> angleDist(0, 6.28318f);
-    std::uniform_real_distribution<float> speedDist(30, 80);
-
-    for (int i = 0; i < 10; ++i)
+    
+    int count = 10;
+    float speedMin = 30, speedMax = 80;
+    float radiusMin = 2, radiusMax = 4;
+    float lifetime = 0.8f;
+    sf::Color color = Colors::Miss;
+    
+    switch (type)
+    {
+    case ParticleType::Explosion:
+        count = 30;
+        speedMin = 50;
+        speedMax = 180;
+        radiusMin = 3;
+        radiusMax = 6;
+        lifetime = 1.2f;
+        color = Colors::Hit;
+        break;
+    case ParticleType::WaterSplash:
+        count = 15;
+        speedMin = 30;
+        speedMax = 90;
+        radiusMin = 2;
+        radiusMax = 3;
+        lifetime = 0.7f;
+        color = Colors::Miss;
+        break;
+    case ParticleType::Confetti:
+        count = 3;
+        speedMin = 100;
+        speedMax = 250;
+        radiusMin = 4;
+        radiusMax = 8;
+        lifetime = 2.5f;
+        color = sf::Color::Yellow;
+        break;
+    }
+    
+    std::uniform_real_distribution<float> speedDist(speedMin, speedMax);
+    std::uniform_real_distribution<float> radiusDist(radiusMin, radiusMax);
+    
+    for (int i = 0; i < count; ++i)
     {
         Particle p;
-        p.shape.setRadius(2);
-        p.shape.setFillColor(Colors::Miss);
+        p.shape.setRadius(radiusDist(gen));
+        p.type = type;
+        p.startColor = color;
+        
+        // Vary colors
+        if (type == ParticleType::Explosion)
+        {
+            p.startColor = (i % 3 == 0) ? sf::Color::Yellow : 
+                          (i % 3 == 1) ? sf::Color(255, 100, 0) : Colors::Hit;
+        }
+        else if (type == ParticleType::Confetti)
+        {
+            sf::Color confettiColors[] = {
+                sf::Color::Red, sf::Color::Yellow, sf::Color::Green,
+                sf::Color::Blue, sf::Color::Magenta, sf::Color::Cyan
+            };
+            p.startColor = confettiColors[i % 6];
+        }
+        
+        p.shape.setFillColor(p.startColor);
         p.shape.setPosition(position);
 
         float angle = angleDist(gen);
         float speed = speedDist(gen);
         p.velocity = sf::Vector2f(std::cos(angle) * speed, std::sin(angle) * speed);
-        p.lifetime = 0.5f;
-        p.maxLifetime = 0.5f;
+        
+        // Confetti falls down
+        if (type == ParticleType::Confetti)
+        {
+            p.velocity.y = -std::abs(p.velocity.y); // Start going up
+        }
+        
+        p.lifetime = lifetime;
+        p.maxLifetime = lifetime;
 
         particles.push_back(p);
     }

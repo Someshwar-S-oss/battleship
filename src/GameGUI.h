@@ -2,12 +2,15 @@
 
 #include "GameLogic.h"
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <array>
 #include <functional>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <iomanip>
 
 // Color palette for pixel art style
 namespace Colors
@@ -29,10 +32,27 @@ namespace Colors
 enum class GameState
 {
     Menu,
+    Settings,
     PlacingShips,
     PlayerTurn,
     ComputerTurn,
     GameOver
+};
+
+// Difficulty levels
+enum class Difficulty
+{
+    Easy,
+    Medium,
+    Hard
+};
+
+// Particle types
+enum class ParticleType
+{
+    Explosion,
+    WaterSplash,
+    Confetti
 };
 
 // Button class for UI elements
@@ -140,9 +160,37 @@ private:
     sf::Sprite menuBackgroundSprite;
     bool hasMenuBackground = false;
     
+    // Audio
+    sf::Music backgroundMusic;
+    sf::SoundBuffer hitSoundBuffer, missSoundBuffer, sinkSoundBuffer;
+    sf::Sound hitSound, missSound, sinkSound;
+    float musicVolume = 50.0f;
+    float sfxVolume = 70.0f;
+    
     // Game state
     GameState state;
     bool playerWon = false;
+    Difficulty difficulty = Difficulty::Medium;
+    
+    // Statistics
+    struct GameStats {
+        int gamesPlayed = 0;
+        int gamesWon = 0;
+        int gamesLost = 0;
+        int totalShotsFired = 0;
+        int totalHits = 0;
+        float getAccuracy() const {
+            return totalShotsFired > 0 ? (100.0f * totalHits / totalShotsFired) : 0.0f;
+        }
+    };
+    GameStats stats;
+    int currentGameShots = 0;
+    int currentGameHits = 0;
+    
+    // Computer AI
+    std::vector<Coordinate> hitQueue; // For smart AI targeting
+    Coordinate lastHit{-1, -1};
+    bool huntingMode = false;
     
     // Game logic (from existing code)
     std::unique_ptr<Board> playerBoard;
@@ -166,8 +214,20 @@ private:
         sf::Vector2f velocity;
         float lifetime;
         float maxLifetime;
+        ParticleType type;
+        sf::Color startColor;
     };
     std::vector<Particle> particles;
+    
+    // Water animation
+    sf::Texture waterTexture;
+    sf::Sprite waterSprite;
+    float waterScrollOffset = 0.0f;
+    bool hasWaterTexture = false;
+    
+    // Fade effect
+    sf::RectangleShape fadeOverlay;
+    float fadeAlpha = 0.0f;
     
     // Timing for computer turn
     sf::Clock actionClock;
@@ -180,7 +240,14 @@ private:
     void initGameObjects();
     void initShipTextures();
     void initMenuBackground();
+    void initAudio();
+    void initWaterBackground();
     void createFleet(std::vector<std::unique_ptr<Ship>> &fleet);
+    
+    // Statistics
+    void loadStats();
+    void saveStats();
+    void updateStatsOnGameEnd(bool won);
     
     // State management
     void changeState(GameState newState);
@@ -188,6 +255,7 @@ private:
     // Event handling
     void processEvents();
     void handleMenuEvents(sf::Event &event);
+    void handleSettingsEvents(sf::Event &event);
     void handlePlacementEvents(sf::Event &event);
     void handleBattleEvents(sf::Event &event);
     void handleGameOverEvents(sf::Event &event);
@@ -200,9 +268,11 @@ private:
     // Rendering
     void render();
     void renderMenu();
+    void renderSettings();
     void renderPlacement();
     void renderBattle();
     void renderGameOver();
+    void renderWaterBackground();
     
     // Ship placement logic
     void setupPlayerFleet();
@@ -226,6 +296,8 @@ private:
     // Visual effects
     void createHitEffect(const sf::Vector2f &position);
     void createMissEffect(const sf::Vector2f &position);
+    void createConfetti(const sf::Vector2f &position);
+    void createParticle(const sf::Vector2f &position, ParticleType type);
     void createSinkEffect(const sf::Vector2f &position);
     
     // UI helpers

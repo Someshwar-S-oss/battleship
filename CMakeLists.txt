@@ -23,7 +23,7 @@ target_compile_options(fleet_commander PRIVATE
 
 # GUI version with SFML
 # Find SFML
-find_package(SFML 2.5 COMPONENTS system window graphics QUIET)
+find_package(SFML 2.5 COMPONENTS system window graphics audio QUIET)
 
 if(SFML_FOUND)
     # Game logic library (shared between terminal and GUI versions)
@@ -50,6 +50,7 @@ if(SFML_FOUND)
         sfml-system
         sfml-window
         sfml-graphics
+        sfml-audio
     )
 
     target_compile_options(fleet_commander_gui PRIVATE
