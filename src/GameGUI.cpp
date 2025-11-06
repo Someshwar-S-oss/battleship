@@ -668,19 +668,60 @@ void GameGUI::initShipTextures()
 
 void GameGUI::initAudio()
 {
-    // Load background music
-    if (backgroundMusic.openFromFile("assets/audio/background.ogg") || 
-        backgroundMusic.openFromFile("assets/audio/background.mp3") ||
-        backgroundMusic.openFromFile("assets/audio/background.wav"))
+    // Load menu music
+    if (menuMusic.openFromFile("assets/audio/menu.ogg") || 
+        menuMusic.openFromFile("assets/audio/menu.mp3") ||
+        menuMusic.openFromFile("assets/audio/menu.wav"))
     {
-        backgroundMusic.setLoop(true);
-        backgroundMusic.setVolume(musicVolume);
-        backgroundMusic.play();
-        std::cout << "Background music loaded and playing." << std::endl;
+        menuMusic.setLoop(true);
+        menuMusic.setVolume(musicVolume);
+        std::cout << "Menu music loaded." << std::endl;
     }
     else
     {
-        std::cout << "No background music found (optional)." << std::endl;
+        std::cout << "No menu music found (optional)." << std::endl;
+    }
+    
+    // Load battle music
+    if (battleMusic.openFromFile("assets/audio/battle.ogg") || 
+        battleMusic.openFromFile("assets/audio/battle.mp3") ||
+        battleMusic.openFromFile("assets/audio/battle.wav"))
+    {
+        battleMusic.setLoop(true);
+        battleMusic.setVolume(musicVolume);
+        std::cout << "Battle music loaded." << std::endl;
+    }
+    else
+    {
+        std::cout << "No battle music found (optional)." << std::endl;
+    }
+    
+    // Load victory music
+    if (victoryMusic.openFromFile("assets/audio/victory.ogg") || 
+        victoryMusic.openFromFile("assets/audio/victory.mp3") ||
+        victoryMusic.openFromFile("assets/audio/victory.wav"))
+    {
+        victoryMusic.setLoop(false); // Don't loop victory music
+        victoryMusic.setVolume(musicVolume);
+        std::cout << "Victory music loaded." << std::endl;
+    }
+    else
+    {
+        std::cout << "No victory music found (optional)." << std::endl;
+    }
+    
+    // Load defeat music
+    if (defeatMusic.openFromFile("assets/audio/defeat.ogg") || 
+        defeatMusic.openFromFile("assets/audio/defeat.mp3") ||
+        defeatMusic.openFromFile("assets/audio/defeat.wav"))
+    {
+        defeatMusic.setLoop(false); // Don't loop defeat music
+        defeatMusic.setVolume(musicVolume);
+        std::cout << "Defeat music loaded." << std::endl;
+    }
+    else
+    {
+        std::cout << "No defeat music found (optional)." << std::endl;
     }
     
     // Load sound effects
@@ -915,7 +956,10 @@ void GameGUI::handleSettingsEvents(sf::Event &event)
             draggingMusic = true;
             float percent = (mousePos.x - 660) / 600.0f;
             musicVolume = std::max(0.0f, std::min(100.0f, percent * 100.0f));
-            backgroundMusic.setVolume(musicVolume);
+            menuMusic.setVolume(musicVolume);
+            battleMusic.setVolume(musicVolume);
+            victoryMusic.setVolume(musicVolume);
+            defeatMusic.setVolume(musicVolume);
         }
         else if (sfxSlider.contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)))
         {
@@ -950,7 +994,10 @@ void GameGUI::handleSettingsEvents(sf::Event &event)
         {
             float percent = (mousePos.x - 660) / 600.0f;
             musicVolume = std::max(0.0f, std::min(100.0f, percent * 100.0f));
-            backgroundMusic.setVolume(musicVolume);
+            menuMusic.setVolume(musicVolume);
+            battleMusic.setVolume(musicVolume);
+            victoryMusic.setVolume(musicVolume);
+            defeatMusic.setVolume(musicVolume);
         }
         else if (draggingSFX)
         {
@@ -1197,10 +1244,10 @@ void GameGUI::renderMenu()
         buttons.push_back(std::make_unique<Button>(sf::Vector2f(760, 400), sf::Vector2f(400, 80), "Start New Game", font));
         buttons.push_back(std::make_unique<Button>(sf::Vector2f(760, 500), sf::Vector2f(400, 80), "Settings", font));
         
-        // Difficulty buttons
-        buttons.push_back(std::make_unique<Button>(sf::Vector2f(660, 620), sf::Vector2f(200, 60), "Easy", font));
-        buttons.push_back(std::make_unique<Button>(sf::Vector2f(870, 620), sf::Vector2f(200, 60), "Medium", font));
-        buttons.push_back(std::make_unique<Button>(sf::Vector2f(1080, 620), sf::Vector2f(200, 60), "Hard", font));
+        // Difficulty buttons (moved down to avoid overlap with Settings button)
+        buttons.push_back(std::make_unique<Button>(sf::Vector2f(660, 680), sf::Vector2f(200, 60), "Easy", font));
+        buttons.push_back(std::make_unique<Button>(sf::Vector2f(870, 680), sf::Vector2f(200, 60), "Medium", font));
+        buttons.push_back(std::make_unique<Button>(sf::Vector2f(1080, 680), sf::Vector2f(200, 60), "Hard", font));
     }
 
     for (size_t i = 0; i < buttons.size(); ++i)
@@ -1209,12 +1256,12 @@ void GameGUI::renderMenu()
         if (i >= 2 && i <= 4)
         {
             int diffIdx = static_cast<int>(difficulty);
-            if (i == diffIdx + 2)
+            if (i == static_cast<size_t>(diffIdx + 2))
             {
                 // Draw selection indicator
                 sf::RectangleShape selector(sf::Vector2f(200, 60));
                 selector.setPosition(buttons[i]->isHovered(sf::Mouse::getPosition(window)) ? 
-                    sf::Vector2f(660 + (i-2)*210 - 5, 615) : sf::Vector2f(660 + (i-2)*210, 620));
+                    sf::Vector2f(660 + (i-2)*210 - 5, 675) : sf::Vector2f(660 + (i-2)*210, 680));
                 selector.setFillColor(sf::Color::Transparent);
                 selector.setOutlineColor(Colors::Highlight);
                 selector.setOutlineThickness(4.0f);
@@ -1224,8 +1271,8 @@ void GameGUI::renderMenu()
         buttons[i]->draw(window);
     }
 
-    drawCenteredText("Select Difficulty:", 580, 22);
-    drawCenteredText("Sink all enemy ships to win!", 780, 24);
+    drawCenteredText("Select Difficulty:", 640, 22);
+    drawCenteredText("Sink all enemy ships to win!", 840, 24);
     
     // Display stats
     std::stringstream ss;
@@ -1475,8 +1522,63 @@ void GameGUI::renderGameOver()
 
 void GameGUI::changeState(GameState newState)
 {
+    GameState oldState = state;
     state = newState;
     buttons.clear();
+
+    // Determine which music should be playing for each state
+    sf::Music* oldMusic = nullptr;
+    sf::Music* newMusic = nullptr;
+    
+    // Map old state to its music
+    switch (oldState)
+    {
+    case GameState::Menu:
+    case GameState::Settings:
+        oldMusic = &menuMusic;
+        break;
+    case GameState::PlacingShips:
+    case GameState::PlayerTurn:
+    case GameState::ComputerTurn:
+        oldMusic = &battleMusic;
+        break;
+    case GameState::GameOver:
+        oldMusic = playerWon ? &victoryMusic : &defeatMusic;
+        break;
+    }
+    
+    // Map new state to its music
+    switch (newState)
+    {
+    case GameState::Menu:
+    case GameState::Settings:
+        newMusic = &menuMusic;
+        break;
+    case GameState::PlacingShips:
+    case GameState::PlayerTurn:
+    case GameState::ComputerTurn:
+        newMusic = &battleMusic;
+        break;
+    case GameState::GameOver:
+        newMusic = playerWon ? &victoryMusic : &defeatMusic;
+        break;
+    }
+    
+    // Only change music if switching to a different track
+    if (oldMusic != newMusic)
+    {
+        // Stop all music
+        menuMusic.stop();
+        battleMusic.stop();
+        victoryMusic.stop();
+        defeatMusic.stop();
+        
+        // Start the new music
+        if (newMusic && newMusic->getStatus() != sf::Music::Playing)
+        {
+            newMusic->play();
+        }
+    }
 
     switch (newState)
     {
@@ -1485,6 +1587,10 @@ void GameGUI::changeState(GameState newState)
         initGameObjects();
         messageBox->clear();
         particles.clear();
+        break;
+        
+    case GameState::Settings:
+        // Keep current music playing
         break;
 
     case GameState::PlacingShips:
@@ -1502,6 +1608,7 @@ void GameGUI::changeState(GameState newState)
         break;
 
     case GameState::GameOver:
+        // Music already started above
         break;
     }
 }

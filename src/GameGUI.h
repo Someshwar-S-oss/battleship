@@ -161,7 +161,10 @@ private:
     bool hasMenuBackground = false;
     
     // Audio
-    sf::Music backgroundMusic;
+    sf::Music menuMusic;
+    sf::Music battleMusic;
+    sf::Music victoryMusic;
+    sf::Music defeatMusic;
     sf::SoundBuffer hitSoundBuffer, missSoundBuffer, sinkSoundBuffer;
     sf::Sound hitSound, missSound, sinkSound;
     float musicVolume = 50.0f;

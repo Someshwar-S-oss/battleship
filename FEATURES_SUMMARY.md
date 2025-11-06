@@ -3,14 +3,21 @@
 ## ✅ All Requested Features Implemented!
 
 ### 1. 🎵 Background Music & Sound Effects
-- **Background Music**: Plays continuously during gameplay (OGG/MP3/WAV)
+- **4 Separate Music Tracks**: Dynamic music that changes with game state
+  - **Menu Music** - Plays on main menu and settings
+  - **Battle Music** - Plays during ship placement and combat
+  - **Victory Music** - Plays when you win (no loop)
+  - **Defeat Music** - Plays when you lose (no loop)
 - **Sound Effects**: 
   - Hit sound when attacking enemy ships
   - Miss sound for shots that miss
   - Sink sound when destroying a ship
 - **Volume Controls**: Adjustable in Settings menu
 - **Audio Files Location**: `assets/audio/`
-  - `background.ogg` / `.mp3` / `.wav` - Background music
+  - `menu.ogg` / `.mp3` / `.wav` - Main menu music
+  - `battle.ogg` / `.mp3` / `.wav` - Combat music
+  - `victory.ogg` / `.mp3` / `.wav` - Victory music
+  - `defeat.ogg` / `.mp3` / `.wav` - Defeat music
   - `hit.wav` / `.ogg` - Hit sound effect
   - `miss.wav` / `.ogg` - Miss sound effect
   - `sink.wav` / `.ogg` - Sink sound effect
@@ -113,7 +120,14 @@ Or use the helper script:
 
 ### Adding Audio Files
 Place your audio files in `assets/audio/`:
-- Background music: `background.ogg`, `background.mp3`, or `background.wav`
+
+**Music (4 tracks):**
+- Menu music: `menu.ogg`, `menu.mp3`, or `menu.wav`
+- Battle music: `battle.ogg`, `battle.mp3`, or `battle.wav`
+- Victory music: `victory.ogg`, `victory.mp3`, or `victory.wav`
+- Defeat music: `defeat.ogg`, `defeat.mp3`, or `defeat.wav`
+
+**Sound Effects (3 files):**
 - Hit sound: `hit.wav` or `hit.ogg`
 - Miss sound: `miss.wav` or `miss.ogg`
 - Sink sound: `sink.wav` or `sink.ogg`
@@ -121,6 +135,7 @@ Place your audio files in `assets/audio/`:
 Free audio resources:
 - freesound.org
 - opengameart.org
+- incompetech.com (music)
 - zapsplat.com
 
 ### Adding Water Background
