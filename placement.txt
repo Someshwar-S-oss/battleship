@@ -1,0 +1,5 @@
+AircraftCarrier F5 H
+Battleship B4 V
+Cruiser A4 H
+Submarine H7 V
+Destroyer D7 H
